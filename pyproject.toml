@@ -1,7 +1,7 @@
 [project]
-name = "autoresearch"
+name = "autodesign"
 version = "0.1.0"
-description = "Autonomous pretraining research swarm"
+description = "Photonics inverse design toolkit with surrogate and solver-backed workflows"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
