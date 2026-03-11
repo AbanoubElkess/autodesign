@@ -8,6 +8,7 @@ SPEC_VERSION = "1.0"
 PACKAGE_ROOT = Path(__file__).resolve().parent
 DEFAULT_CACHE_DIR = Path.home() / ".cache" / "autodesign"
 DEFAULT_LUMERICAL_PYTHON_API_PATH = Path(r"C:\api\python")
+DEFAULT_LOCAL_OLLAMA_MODEL = "gemma3:4b"
 DEFAULT_DATASET_FILE = "dataset.pt"
 DEFAULT_MATERIALS_FILE = "materials.json"
 DEFAULT_MODEL_FILE = "surrogate.pt"

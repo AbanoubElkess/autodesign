@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from autodesign.workflows import run_train
+from src.workflows import run_train
 
 
 def build_parser() -> argparse.ArgumentParser:

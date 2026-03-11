@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from autodesign.specs import load_problem_spec
+from src.specs import load_problem_spec
 
 from tests.support import write_spec
 

@@ -1,0 +1,73 @@
+{
+  "problem_id": "freeform_metasurface_swarm_demo",
+  "random_seed": 17,
+  "cache_dir": ".autodesign_cache",
+  "output_dir": ".autodesign_runs",
+  "geometry": {
+    "family": "layered_material_grid",
+    "grid_shape": [6, 6],
+    "unit_cell_size_um": [0.9, 0.9],
+    "layer_thickness_um": [0.22, 0.12],
+    "periodic_x": true,
+    "periodic_y": true,
+    "superstrate_material": "Air",
+    "substrate_material": "SiO2"
+  },
+  "material_search_policy": {
+    "material_classes": ["dielectric", "pcm"],
+    "include_materials": ["SiO2", "SiN", "TiO2", "GST"],
+    "exclude_materials": [],
+    "max_candidates": 4,
+    "prefer_phase_change": true,
+    "database": "lumerical"
+  },
+  "spectral_grid": {
+    "wavelength_um": [1.50, 1.55, 1.60],
+    "incidence_angles_deg": [0.0],
+    "polarizations": ["TE", "TM"]
+  },
+  "objective": {
+    "target_channels": ["T", "phase"],
+    "target_response": {
+      "T": [
+        [0.88, 0.92, 0.90],
+        [0.84, 0.88, 0.86]
+      ],
+      "phase": [
+        [0.0, 1.1, 2.2],
+        [0.0, 1.0, 2.0]
+      ]
+    },
+    "channel_weights": {
+      "T": 1.0,
+      "phase": 0.25
+    }
+  },
+  "dataset": {
+    "num_samples": 12,
+    "train_split": 0.8,
+    "dataset_file": "dataset.pt"
+  },
+  "surrogate": {
+    "hidden_channels": 12,
+    "epochs": 3,
+    "batch_size": 4,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001
+  },
+  "inverse_design": {
+    "steps": 10,
+    "learning_rate": 0.08,
+    "top_k": 2,
+    "binarization_weight": 0.01,
+    "restarts": 1,
+    "temperature": 1.0,
+    "validate_with_solver": false,
+    "append_refined_to_dataset": true
+  },
+  "solver": {
+    "backend": "mock",
+    "product": "fdtd",
+    "timeout_s": 60
+  }
+}

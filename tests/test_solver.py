@@ -7,9 +7,9 @@ from pathlib import Path
 
 import torch
 
-from autodesign.geometry import sample_layered_material_grid
-from autodesign.solver import LumericalFDTDAdapter, SolverSetupError, create_solver
-from autodesign.specs import load_problem_spec
+from src.geometry import sample_layered_material_grid
+from src.solver import LumericalFDTDAdapter, SolverSetupError, create_solver
+from src.specs import load_problem_spec
 
 from tests.support import write_spec
 

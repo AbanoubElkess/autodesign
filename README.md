@@ -21,6 +21,7 @@ v1 does not claim arbitrary photonics support in execution. The stable abstracti
 - `autodesign/`: internal package for specs, geometry encodings, materials, solver adapters, datasets, surrogate modeling, and workflow orchestration.
 - `examples/mock_periodic_unit_cell.json`: runnable mock-backed reference problem.
 - `program.md`: optional automation guidance, not a required runtime dependency.
+- `swarm.py`: thin CLI for a local-only Ollama swarm that iterates on the inverse-design loop.
 - `tests/`: unit and workflow coverage for the v1 slice.
 
 ## Problem Spec
@@ -34,6 +35,12 @@ python train.py --spec examples/mock_periodic_unit_cell.json --mode inverse
 python train.py --spec examples/mock_periodic_unit_cell.json --mode refine
 ```
 
+For a local-only swarm run:
+
+```bash
+python swarm.py --spec examples/freeform_metasurface_swarm.json --model gemma3:4b --rounds 1
+```
+
 The spec defines:
 
 - geometry: layered 2.5D material grid, unit-cell size, periodicity, layer thicknesses, substrate/superstrate.
@@ -42,6 +49,22 @@ The spec defines:
 - material search policy: candidate classes, explicit includes/excludes, and candidate-count cap.
 - solver: `mock` for local testing or `lumerical_fdtd` for golden-solver integration.
 - dataset, surrogate, inverse design: runtime budgets and artifact filenames.
+
+## Local Ollama Swarm
+
+The swarm layer is local-only by design:
+
+- every agent call goes through the local `ollama` runtime.
+- cloud-backed Ollama models are rejected.
+- Hugging Face access is not used anywhere in the swarm flow.
+- the swarm tunes the search and training knobs around the inverse-design loop; it does not redefine the physical target.
+
+The default agent roles are:
+
+- `photonics_strategist`: adjusts design-space breadth and sampling.
+- `surrogate_tuner`: adjusts forward-model capacity and training settings.
+- `inverse_tuner`: adjusts inverse-search hyperparameters.
+- `reviewer`: merges the strongest proposals into one safe patch for the next round.
 
 ## Solver Strategy
 
@@ -78,3 +101,4 @@ The tests cover:
 - material filtering and solver request generation.
 - Lumerical setup failure handling.
 - mock-backed dataset generation, surrogate training, inverse design, and refinement.
+- scripted local-swarm orchestration without live LLM dependencies in tests.

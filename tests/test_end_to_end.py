@@ -4,8 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from autodesign.dataset import load_dataset
-from autodesign.workflows import run_prepare, run_train
+from src.dataset import load_dataset
+from src.workflows import run_prepare, run_train
 
 from tests.support import write_spec
 

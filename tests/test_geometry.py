@@ -6,13 +6,13 @@ from pathlib import Path
 
 import torch
 
-from autodesign.geometry import (
+from src.geometry import (
     deserialize_material_grid,
     one_hot_encode_grid,
     sample_layered_material_grid,
     serialize_material_grid,
 )
-from autodesign.specs import load_problem_spec
+from src.specs import load_problem_spec
 
 from tests.support import write_spec
 

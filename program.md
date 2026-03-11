@@ -13,6 +13,7 @@ Operate on the `[PHOT-*]` roadmap without widening scope beyond the validated v1
 5. `[PHOT-104]` Keep surrogate modeling torch-only.
 6. `[PHOT-105]` Use surrogate-first inverse design and solver-backed refinement; do not jump straight to unrestricted solver-in-loop topology search.
 7. `[PHOT-106]` Extend coverage before broadening the supported structure family.
+8. `[PHOT-107]` Keep swarm orchestration local-only through Ollama and reject cloud-backed models.
 
 ## Guardrails
 
@@ -20,6 +21,7 @@ Operate on the `[PHOT-*]` roadmap without widening scope beyond the validated v1
 - Do not claim general support for arbitrary photonics structures until a new structure family has tests, a stable geometry contract, and a validated solver path.
 - Do not add solver-specific Python dependencies to the core project. Use bridges, optional integration points, or private-fork specializations instead.
 - Do not store generated datasets, checkpoints, or solver outputs in git.
+- Do not let the swarm call Hugging Face or any remote model endpoint.
 - Keep issue references explicit in work summaries and commits, for example `[PHOT-104] train surrogate on updated dataset schema`.
 
 ## Default Execution Order
@@ -30,6 +32,7 @@ For a new problem spec:
 2. Train the surrogate with `train.py --mode surrogate`.
 3. Generate inverse candidates with `train.py --mode inverse`.
 4. Validate and append solver-backed refinements with `train.py --mode refine`.
+5. For swarm-guided tuning, run `swarm.py` against a local Ollama model after the baseline problem spec is stable.
 
 ## Preferred Extensions
 
