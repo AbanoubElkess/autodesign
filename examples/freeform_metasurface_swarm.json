@@ -66,8 +66,9 @@
     "append_refined_to_dataset": true
   },
   "solver": {
-    "backend": "mock",
+    "backend": "lumerical_fdtd",
     "product": "fdtd",
+    "python_api_path": "C:\\api\\python",
     "timeout_s": 60
   }
 }

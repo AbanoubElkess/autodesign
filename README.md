@@ -6,7 +6,7 @@
 
 - `[PHOT-100]` Bootstrap the repository around `autodesign` and move runtime caches to `~/.cache/autodesign` by default.
 - `[PHOT-101]` Define a JSON problem contract for layered multi-material periodic unit cells and spectral-response objectives.
-- `[PHOT-102]` Provide a solver abstraction with a mock backend for local development and a Lumerical FDTD adapter for golden-solver integration.
+- `[PHOT-102]` Use Lumerical FDTD as the default solver interface for dataset generation, validation, and refinement.
 - `[PHOT-103]` Build cached datasets from sampled geometries and solver responses.
 - `[PHOT-104]` Train a torch-only forward surrogate on geometry-to-spectrum data.
 - `[PHOT-105]` Run surrogate-first inverse design, emit candidate layouts, and refine them back through the solver.
@@ -19,7 +19,7 @@ v1 does not claim arbitrary photonics support in execution. The stable abstracti
 - `prepare.py`: thin CLI for `materials` and `dataset` preparation stages.
 - `train.py`: thin CLI for `surrogate`, `inverse`, and `refine` runtime modes.
 - `autodesign/`: internal package for specs, geometry encodings, materials, solver adapters, datasets, surrogate modeling, and workflow orchestration.
-- `examples/mock_periodic_unit_cell.json`: runnable mock-backed reference problem.
+- `examples/mock_periodic_unit_cell.json`: periodic unit-cell reference problem configured for Lumerical FDTD.
 - `program.md`: optional automation guidance, not a required runtime dependency.
 - `swarm.py`: thin CLI for a local-only Ollama swarm that iterates on the inverse-design loop.
 - `tests/`: unit and workflow coverage for the v1 slice.
@@ -47,7 +47,7 @@ The spec defines:
 - spectral grid: wavelength samples, incidence angles, and polarizations.
 - objective: target channels and their desired spectral responses.
 - material search policy: candidate classes, explicit includes/excludes, and candidate-count cap.
-- solver: `mock` for local testing or `lumerical_fdtd` for golden-solver integration.
+- solver: `lumerical_fdtd` as the default and expected execution backend.
 - dataset, surrogate, inverse design: runtime budgets and artifact filenames.
 
 ## Local Ollama Swarm
@@ -68,14 +68,24 @@ The default agent roles are:
 
 ## Solver Strategy
 
-Two solver paths exist:
+The solver path is Lumerical-first:
 
-- `mock`: deterministic local backend for tests and smoke runs.
 - `lumerical_fdtd`: adapter that normalizes solver requests and supports:
   - `solver.material_database_export` for resolving materials from an exported Lumerical database snapshot.
   - `solver.cli_bridge` for external-script or executable-backed simulation/refinement.
+  - `solver.python_api_path`, which defaults to `C:\api\python` in this repo.
 
 The direct `lumapi` path is intentionally conservative in this build. It is recognized by the adapter, but executable-backed bridges or exported material snapshots are the recommended integration path until a project-specific direct Lumerical bridge is added in the private fork.
+
+## Current Design Target
+
+The current inverse-design target is a periodic freeform metasurface unit cell, not a full finite metasurface aperture.
+
+- `examples/freeform_metasurface_swarm.json` defines a 2-layer 2.5D freeform meta-atom.
+- The unit cell is `0.9 um x 0.9 um` with a `6 x 6` freeform material grid in each layer.
+- The stack uses an `Air` superstrate and `SiO2` substrate.
+- The candidate materials are `SiO2`, `SiN`, `TiO2`, and `GST`.
+- The objective is transmission magnitude plus transmission phase shaping over `1.50-1.60 um` for `TE` and `TM` at normal incidence.
 
 ## Artifacts
 
@@ -100,5 +110,5 @@ The tests cover:
 - geometry encoding round-trips.
 - material filtering and solver request generation.
 - Lumerical setup failure handling.
-- mock-backed dataset generation, surrogate training, inverse design, and refinement.
+- Lumerical-style dataset generation, surrogate training, inverse design, and refinement orchestration.
 - scripted local-swarm orchestration without live LLM dependencies in tests.

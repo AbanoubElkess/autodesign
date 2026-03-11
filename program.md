@@ -8,7 +8,7 @@ Operate on the `[PHOT-*]` roadmap without widening scope beyond the validated v1
 
 1. `[PHOT-100]` Keep the repository centered on the `autodesign` package with thin root scripts.
 2. `[PHOT-101]` Preserve the JSON problem contract as the single source of truth.
-3. `[PHOT-102]` Treat Lumerical FDTD as the golden solver, but keep the mock backend healthy so automated tests stay runnable.
+3. `[PHOT-102]` Treat Lumerical FDTD as the default solver, and keep any test doubles confined to Lumerical-style bridge tests only.
 4. `[PHOT-103]` Store datasets and large runtime artifacts outside git.
 5. `[PHOT-104]` Keep surrogate modeling torch-only.
 6. `[PHOT-105]` Use surrogate-first inverse design and solver-backed refinement; do not jump straight to unrestricted solver-in-loop topology search.

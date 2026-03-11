@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import importlib
 import json
-import math
 import subprocess
 import sys
 from pathlib import Path
@@ -12,12 +11,11 @@ from typing import Any
 
 import torch
 
-from .geometry import deserialize_material_grid, one_hot_encode_grid, serialize_material_grid
+from .geometry import serialize_material_grid
 from .materials import (
     BUILTIN_MATERIAL_CATALOG,
     MaterialRecord,
     filter_material_records,
-    material_feature_tensor,
     material_records_from_payload,
 )
 from .specs import ProblemSpec, SimulationResult, SolverRequest, save_json
@@ -65,79 +63,6 @@ class BaseSolverAdapter:
 
     def simulate(self, request: SolverRequest) -> SimulationResult:
         raise NotImplementedError
-
-
-class MockSolverAdapter(BaseSolverAdapter):
-    backend_name = "mock"
-
-    def resolve_materials(self) -> list[MaterialRecord]:
-        wavelength_range = (
-            min(self.spec.spectral_grid.wavelength_um),
-            max(self.spec.spectral_grid.wavelength_um),
-        )
-        materials = filter_material_records(BUILTIN_MATERIAL_CATALOG, self.spec.material_search_policy, wavelength_range)
-        if not materials:
-            raise SolverSetupError("No materials matched the requested policy in the mock catalog.")
-        return materials
-
-    def simulate(self, request: SolverRequest) -> SimulationResult:
-        material_lookup = {record.name: record for record in BUILTIN_MATERIAL_CATALOG}
-        selected_materials = [material_lookup[name] for name in request.resolved_materials]
-        material_grid = deserialize_material_grid(request.geometry_indices)
-        one_hot = one_hot_encode_grid(material_grid, len(selected_materials))
-        fractions = one_hot.mean(dim=(1, 2))
-        material_features = material_feature_tensor(selected_materials)
-        effective_index = torch.matmul(fractions, material_features[:, 0])
-        effective_loss = torch.matmul(fractions, material_features[:, 1])
-        horizontal_edges = (material_grid[:, :, 1:] != material_grid[:, :, :-1]).float().mean().item()
-        vertical_edges = (material_grid[:, 1:, :] != material_grid[:, :-1, :]).float().mean().item()
-        edge_density = 0.5 * (horizontal_edges + vertical_edges)
-        thickness = torch.tensor(self.spec.geometry.layer_thickness_um, dtype=torch.float32)
-        outputs: dict[str, tuple[tuple[float, ...], ...]] = {}
-        condition_values: dict[str, list[tuple[float, ...]]] = {channel: [] for channel in request.target_channels}
-
-        for angle in request.incidence_angles_deg:
-            angle_rad = math.radians(angle)
-            for polarization in request.polarizations:
-                pol_factor = 1.0 if polarization == "TE" else 0.92
-                t_values: list[float] = []
-                r_values: list[float] = []
-                phase_values: list[float] = []
-                for wavelength in request.wavelengths_um:
-                    optical_path = float(torch.sum(thickness * effective_index).item()) / wavelength
-                    attenuation = float(torch.sum(thickness * effective_loss).item()) / wavelength
-                    oscillation = math.cos(2.0 * math.pi * optical_path * (1.0 + 0.1 * math.sin(angle_rad)))
-                    sigmoid_t = 1.0 / (1.0 + math.exp(-(2.8 - 1.6 * attenuation - 0.7 * edge_density + 0.25 * oscillation)))
-                    sigmoid_r = 1.0 / (1.0 + math.exp(-(-0.9 + 1.1 * edge_density + 0.2 * abs(effective_index.mean().item() - 1.8))))
-                    transmission = max(0.0, min(sigmoid_t * pol_factor * (1.0 - 0.03 * abs(angle_rad)), 1.0))
-                    reflection = max(0.0, min(sigmoid_r * (1.0 + 0.02 * abs(angle_rad)), 1.0))
-                    total = max(transmission + reflection, 1.0)
-                    transmission /= total
-                    reflection /= total
-                    phase = math.atan2(
-                        math.sin(2.0 * math.pi * optical_path * pol_factor),
-                        math.cos(2.0 * math.pi * optical_path * pol_factor),
-                    )
-                    t_values.append(transmission)
-                    r_values.append(reflection)
-                    phase_values.append(phase)
-                if "T" in condition_values:
-                    condition_values["T"].append(tuple(t_values))
-                if "R" in condition_values:
-                    condition_values["R"].append(tuple(r_values))
-                if "phase" in condition_values:
-                    condition_values["phase"].append(tuple(phase_values))
-
-        for channel, rows in condition_values.items():
-            outputs[channel] = tuple(rows)
-        return SimulationResult(
-            problem_id=request.problem_id,
-            sample_id=request.sample_id,
-            geometry_indices=request.geometry_indices,
-            resolved_materials=request.resolved_materials,
-            spectral_outputs=outputs,
-            provenance={"backend": self.backend_name, "edge_density": edge_density},
-        )
 
 
 class LumericalFDTDAdapter(BaseSolverAdapter):
@@ -242,8 +167,6 @@ class LumericalFDTDAdapter(BaseSolverAdapter):
 
 
 def create_solver(spec: ProblemSpec) -> BaseSolverAdapter:
-    if spec.solver.backend == "mock":
-        return MockSolverAdapter(spec)
     if spec.solver.backend == "lumerical_fdtd":
         return LumericalFDTDAdapter(spec)
     raise SolverSetupError(f"Unknown solver backend {spec.solver.backend!r}.")

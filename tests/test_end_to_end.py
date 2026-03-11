@@ -11,7 +11,7 @@ from tests.support import write_spec
 
 
 class EndToEndWorkflowTests(unittest.TestCase):
-    def test_mock_workflow_runs_end_to_end(self) -> None:
+    def test_lumerical_bridge_workflow_runs_end_to_end(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             spec_path = write_spec(root)

@@ -14,6 +14,6 @@ DEFAULT_MATERIALS_FILE = "materials.json"
 DEFAULT_MODEL_FILE = "surrogate.pt"
 DEFAULT_CANDIDATES_FILE = "candidates.json"
 SUPPORTED_GEOMETRY_FAMILY = "layered_material_grid"
-SUPPORTED_SOLVER_BACKENDS = {"mock", "lumerical_fdtd"}
+SUPPORTED_SOLVER_BACKENDS = {"lumerical_fdtd"}
 SUPPORTED_POLARIZATIONS = {"TE", "TM"}
 SUPPORTED_CHANNELS = {"T", "R", "phase"}

@@ -15,7 +15,7 @@ from tests.support import write_spec
 
 
 class SolverAdapterTests(unittest.TestCase):
-    def test_mock_solver_request_contains_periodic_boundaries(self) -> None:
+    def test_lumerical_request_contains_periodic_boundaries(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             spec = load_problem_spec(write_spec(Path(tmpdir)))
             solver = create_solver(spec)
@@ -68,7 +68,12 @@ class SolverAdapterTests(unittest.TestCase):
 
     def test_lumerical_without_setup_fails_fast(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            spec = load_problem_spec(write_spec(Path(tmpdir), overrides={"solver": {"backend": "lumerical_fdtd"}}))
+            spec = load_problem_spec(
+                write_spec(
+                    Path(tmpdir),
+                    overrides={"solver": {"backend": "lumerical_fdtd", "cli_bridge": []}},
+                )
+            )
             solver = LumericalFDTDAdapter(spec)
             with self.assertRaises(SolverSetupError):
                 solver.resolve_materials()

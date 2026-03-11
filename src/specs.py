@@ -157,7 +157,7 @@ class MaterialSearchPolicy:
 
 @dataclass(frozen=True)
 class SolverConfig:
-    backend: str = "mock"
+    backend: str = "lumerical_fdtd"
     product: str = "fdtd"
     python_api_path: str | None = (
         str(DEFAULT_LUMERICAL_PYTHON_API_PATH) if DEFAULT_LUMERICAL_PYTHON_API_PATH.exists() else None
@@ -342,7 +342,7 @@ def problem_spec_from_dict(data: dict[str, Any], base_dir: Path | None = None) -
         database=str(data.get("material_search_policy", {}).get("database", "lumerical")),
     )
     solver = SolverConfig(
-        backend=str(data.get("solver", {}).get("backend", "mock")),
+        backend=str(data.get("solver", {}).get("backend", "lumerical_fdtd")),
         product=str(data.get("solver", {}).get("product", "fdtd")),
         python_api_path=data.get("solver", {}).get(
             "python_api_path",
